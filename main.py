@@ -5,6 +5,24 @@ from datetime import timedelta
 import os
 import yt_d1p
 import asyncio
+import yt_dlp       # Make sure it's "dlp" with an "l", not a "1"!
+import asyncio
+
+# ================= MUSIC CONFIGURATION ================= #
+YTDL_OPTIONS = {
+    'format': 'bestaudio/best',
+    'noplaylist': True,
+    'quiet': True,
+    'default_search': 'ytsearch',
+    'source_address': '0.0.0.0'
+}
+
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn'
+}
+
+ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
