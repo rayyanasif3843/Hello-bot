@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord import app_commands
 from datetime import timedelta
 import os
+import yt_d1p
+import asyncio
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
