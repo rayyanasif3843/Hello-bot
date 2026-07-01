@@ -3,10 +3,9 @@ from discord.ext import commands
 from discord import app_commands
 from datetime import timedelta
 import os
-import yt_d1p
+import yt_dlp
 import asyncio
-import yt_dlp       # Make sure it's "dlp" with an "l", not a "1"!
-import asyncio
+
 
 # ================= MUSIC CONFIGURATION ================= #
 YTDL_OPTIONS = {
