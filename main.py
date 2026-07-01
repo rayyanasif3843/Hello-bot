@@ -743,7 +743,100 @@ async def slash_poll(
     await msg.add_reaction("👍")
     await msg.add_reaction("👎")
 
+# ================= MUSIC COMMANDS ================= #
 
+@bot.command()
+async def play(ctx, *, query: str):
+    if not ctx.author.voice or not ctx.author.voice.channel:
+        return await ctx.send("You need to be in a voice channel to use this command!")
+
+    voice_channel = ctx.author.voice.channel
+    voice_client = ctx.guild.voice_client
+
+    if voice_client is None:
+        voice_client = await voice_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+
+    async with ctx.typing():
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(query, download=False))
+        
+        if 'entries' in data:
+            video = data['entries'][0]
+        else:
+            video = data
+
+        stream_url = video['url']
+        song_title = video['title']
+
+        if voice_client.is_playing():
+            voice_client.stop()
+
+        audio_source = discord.FFmpegPCMAudio(stream_url, **FFMPEG_OPTIONS)
+        voice_client.play(audio_source, after=lambda e: asyncio.run_coroutine_threadsafe(voice_client.disconnect(), bot.loop) if not voice_client.is_playing() else None)
+
+    await ctx.send(f"🎶 Now playing: **{song_title}**")
+
+
+@bot.tree.command(name="play", description="Joins your voice channel and plays a song!")
+@app_commands.describe(query="The name or URL of the song you want to play")
+async def slash_play(interaction: discord.Interaction, query: str):
+    if not interaction.user.voice or not interaction.user.voice.channel:
+        return await interaction.response.send_message("You need to be in a voice channel to use this command!", ephemeral=True)
+
+    await interaction.response.defer()
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+
+    try:
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(query, download=False))
+
+        if 'entries' in data:
+            video = data['entries'][0]
+        else:
+            video = data
+
+        stream_url = video['url']
+        song_title = video['title']
+
+        if voice_client is None:
+            voice_client = await voice_channel.connect()
+        elif voice_client.channel != voice_channel:
+            await voice_client.move_to(voice_channel)
+
+        if voice_client.is_playing():
+            voice_client.stop()
+
+        audio_source = discord.FFmpegPCMAudio(stream_url, **FFMPEG_OPTIONS)
+        voice_client.play(audio_source, after=lambda e: asyncio.run_coroutine_threadsafe(voice_client.disconnect(), bot.loop) if not voice_client.is_playing() else None)
+
+        await interaction.followup.send(f"🎶 Now playing: **{song_title}**")
+
+    except Exception as e:
+        print(e)
+        await interaction.followup.send("An error occurred while trying to play the song.")
+
+
+@bot.command()
+async def leave(ctx):
+    voice_client = ctx.guild.voice_client
+    if voice_client and voice_client.is_connected():
+        await voice_client.disconnect()
+        await ctx.send("👋 Left the voice channel.")
+    else:
+        await ctx.send("I am not connected to a voice channel.")
+
+
+@bot.tree.command(name="leave", description="Make the bot leave the voice channel")
+async def slash_leave(interaction: discord.Interaction):
+    voice_client = interaction.guild.voice_client
+    if voice_client and voice_client.is_connected():
+        await voice_client.disconnect()
+        await interaction.response.send_message("👋 Left the voice channel.")
+    else:
+        await interaction.response.send_message("I am not connected to a voice channel.", ephemeral=True)
 # ================= ERROR HANDLER ================= #
 
 @bot.event
