@@ -1,8 +1,4 @@
-## Fixed Python Code
 
-Below is a corrected version of your bot code. I fixed the syntax errors, indentation problems, malformed blocks, and several Discord.py usage issues that would otherwise cause runtime errors.
-
-```python
 import discord
 from discord.ext import commands
 from discord import app_commands
