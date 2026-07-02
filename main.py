@@ -785,9 +785,17 @@ class ApplicationDropdown(Select):
 
             end = time.time()
 
-            embed = discord.Embed(
-                title="🛡️ Moderator Application",
-                color=discord.Color.green()
+              embed = discord.Embed(
+    title="🛡️ Moderator Applications",
+    description=(
+        "**Moderator requirements:**\n"
+        "• Must be 13+\n"
+        "• Must complete weekly quota for assigned role.\n"
+        "• Must be helpful and mature.\n\n"
+        "Use the dropdown below to apply."
+    ),
+    color=discord.Color.blurple()
+)
             )
 
             for q, a in zip(QUESTIONS, answers):
