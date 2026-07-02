@@ -5,7 +5,28 @@ from datetime import timedelta
 import os
 import yt_dlp
 import asyncio
+from discord.ui import View, Select
+import time
 
+APPLICATION_CHANNEL_ID = 1474129022731681902
+
+ACCEPT_ROLES = [
+    1504770849230557244,
+    1482751779107115101
+]
+
+PANEL_ENABLED = {"enabled": True}
+
+QUESTIONS = [
+    "Why do you want to be a moderator?",
+    "How old are you?",
+    "Do you have moderation experience?",
+    "If yes, which servers have you moderated?",
+    "Are you able to host giveaways and boost activity?",
+    "Will you reach 800 messages in your first week?",
+    "How will you be a better moderator than others?",
+    "Anything else you'd like to add?"
+]
 # ================= MUSIC CONFIGURATION ================= #
 YTDL_OPTIONS = {
     'format': 'bestaudio/best',
