@@ -770,7 +770,7 @@ class ApplicationDropdown(Select):
         check=check
     )
 
-    answers.append(msg.content)  
+    answers.append(msg.content) 
     )
 
     await user.send(embed=q_embed)
