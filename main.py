@@ -764,6 +764,17 @@ class ApplicationDropdown(Select):
 
     await user.send(embed=q_embed)
 
+    msg = await bot.wait_for(
+        "message",
+        timeout=600,
+        check=check
+    )
+
+    answers.append(msg.content)  
+    )
+
+    await user.send(embed=q_embed)
+
                 msg = await bot.wait_for(
                     "message",
                     timeout=600,
