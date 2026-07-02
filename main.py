@@ -1028,5 +1028,5 @@ if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN environment variable is not set.")
 
 bot.run(TOKEN)
-```
+
 
