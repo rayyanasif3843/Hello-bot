@@ -634,7 +634,256 @@ async def slash_leave(interaction: discord.Interaction):
         embed = quick_embed("ℹ️ Information", "I am not connected to a voice channel.", discord.Color.light_grey())
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+class ApplicationDecisionView(View):
+    def __init__(self, applicant_id):
+        super().__init__(timeout=None)
+        self.applicant_id = applicant_id
 
+    @discord.ui.button(label="Accept", style=discord.ButtonStyle.success, emoji="✅")
+    async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        member = interaction.guild.get_member(self.applicant_id)
+
+        if member:
+            for role_id in ACCEPT_ROLES:
+                role = interaction.guild.get_role(role_id)
+                if role:
+                    await member.add_roles(role)
+
+            try:
+                await member.send(
+                    embed=quick_embed(
+                        "✅ Application Accepted",
+                        "Congratulations! Your moderator application has been accepted.",
+                        discord.Color.green()
+                    )
+                )
+            except:
+                pass
+
+        await interaction.response.send_message(
+            embed=quick_embed(
+                "✅ Accepted",
+                "Application accepted successfully.",
+                discord.Color.green()
+            ),
+            ephemeral=True
+        )
+
+        for child in self.children:
+            child.disabled = True
+
+        await interaction.message.edit(view=self)
+
+    @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, emoji="❌")
+    async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        member = interaction.guild.get_member(self.applicant_id)
+
+        if member:
+            try:
+                await member.send(
+                    embed=quick_embed(
+                        "❌ Application Denied",
+                        "Unfortunately your moderator application was denied.",
+                        discord.Color.red()
+                    )
+                )
+            except:
+                pass
+
+        await interaction.response.send_message(
+            embed=quick_embed(
+                "❌ Denied",
+                "Application denied.",
+                discord.Color.red()
+            ),
+            ephemeral=True
+        )
+
+        for child in self.children:
+            child.disabled = True
+
+        await interaction.message.edit(view=self)
+
+
+class ApplicationDropdown(Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(
+                label="Moderator Application",
+                emoji="🛡️",
+                description="Apply for moderator"
+            )
+        ]
+
+        super().__init__(
+            placeholder="Select an application...",
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+
+        if not PANEL_ENABLED["enabled"]:
+            return await interaction.response.send_message(
+                embed=quick_embed(
+                    "❌ Panel Closed",
+                    "The panel has been closed by an administrator.",
+                    discord.Color.red()
+                ),
+                ephemeral=True
+            )
+
+        await interaction.response.send_message(
+            "📩 Check your DMs.",
+            ephemeral=True
+        )
+
+        user = interaction.user
+        answers = []
+
+        try:
+            await user.send(
+                embed=quick_embed(
+                    "Moderator Application",
+                    "Please answer all questions."
+                )
+            )
+
+            def check(m):
+                return m.author.id == user.id and isinstance(m.channel, discord.DMChannel)
+
+            start = time.time()
+
+            for question in QUESTIONS:
+                await user.send(question)
+
+                msg = await bot.wait_for(
+                    "message",
+                    timeout=600,
+                    check=check
+                )
+
+                answers.append(msg.content)
+
+            end = time.time()
+
+            embed = discord.Embed(
+                title="🛡️ Moderator Application",
+                color=discord.Color.green()
+            )
+
+            for q, a in zip(QUESTIONS, answers):
+                embed.add_field(
+                    name=q,
+                    value=a,
+                    inline=False
+                )
+
+            embed.add_field(
+                name="Applicant",
+                value=f"{user.mention}\nID: {user.id}",
+                inline=False
+            )
+
+            embed.add_field(
+                name="Time Taken",
+                value=f"{round(end-start)} seconds",
+                inline=False
+            )
+
+            channel = bot.get_channel(APPLICATION_CHANNEL_ID)
+
+            if channel:
+                await channel.send(
+                    embed=embed,
+                    view=ApplicationDecisionView(user.id)
+                )
+
+            await user.send(
+                embed=quick_embed(
+                    "✅ Submitted",
+                    "Your application has been submitted.",
+                    discord.Color.green()
+                )
+            )
+
+        except asyncio.TimeoutError:
+            await user.send(
+                embed=quick_embed(
+                    "❌ Timed Out",
+                    "Application timed out.",
+                    discord.Color.red()
+                )
+            )
+
+
+class ApplicationView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(ApplicationDropdown())
+
+
+@bot.tree.command(
+    name="modpanel",
+    description="Send moderator application panel"
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def modpanel(interaction: discord.Interaction):
+
+    embed = discord.Embed(
+        title="🛡️ Moderator Applications",
+        description="Select an option from the dropdown below.",
+        color=discord.Color.blurple()
+    )
+
+    await interaction.channel.send(
+        embed=embed,
+        view=ApplicationView()
+    )
+
+    await interaction.response.send_message(
+        "Panel sent.",
+        ephemeral=True
+    )
+
+
+@bot.tree.command(
+    name="disablepanel",
+    description="Disable application panel"
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def disablepanel(interaction: discord.Interaction):
+
+    PANEL_ENABLED["enabled"] = False
+
+    await interaction.response.send_message(
+        embed=quick_embed(
+            "❌ Panel Disabled",
+            "Applications have been disabled.",
+            discord.Color.red()
+        ),
+        ephemeral=True
+    )
+
+
+@bot.tree.command(
+    name="enablepanel",
+    description="Enable application panel"
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def enablepanel(interaction: discord.Interaction):
+
+    PANEL_ENABLED["enabled"] = True
+
+    await interaction.response.send_message(
+        embed=quick_embed(
+            "✅ Panel Enabled",
+            "Applications have been enabled.",
+            discord.Color.green()
+        ),
+        ephemeral=True
+    )
 # ================= ERROR HANDLER ================= #
 
 @bot.event
