@@ -12,7 +12,17 @@ YTDL_OPTIONS = {
     'noplaylist': True,
     'quiet': True,
     'default_search': 'ytsearch',
-    'source_address': '0.0.0.0'
+    'source_address': '0.0.0.0',
+    # ---- BYPASS OPTIONS ----
+    'nocheckcertificate': True,
+    'geo_bypass': True,
+    'cookiefile': 'cookies.txt',  # Keeps your session authenticated
+    'extractor_args': {
+        'youtube': {
+            'player_client': ['android', 'ios'],  # Spoofs mobile apps to reduce blocking
+            'skip': ['dash', 'hls']
+        }
+    }
 }
 
 FFMPEG_OPTIONS = {
