@@ -832,9 +832,16 @@ class ApplicationView(View):
 async def modpanel(interaction: discord.Interaction):
 
     embed = discord.Embed(
-        title="🛡️ Moderator Applications",
-        description="Select an option from the dropdown below.",
-        color=discord.Color.blurple()
+    title="🛡️ Moderator Applications",
+    description=(
+        "**Moderator requirements:**\n"
+        "• Must be 13+\n"
+        "• Must complete weekly quota for assigned role.\n"
+        "• Must be helpful and mature.\n\n"
+        "Use the dropdown below to apply."
+    ),
+    color=discord.Color.blurple()
+)
     )
 
     await interaction.channel.send(
