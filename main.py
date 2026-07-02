@@ -755,8 +755,14 @@ class ApplicationDropdown(Select):
 
             start = time.time()
 
-            for question in QUESTIONS:
-                await user.send(question)
+            for i, question in enumerate(QUESTIONS, start=1):
+    q_embed = discord.Embed(
+        title=f"Question {i}/{len(QUESTIONS)}",
+        description=question,
+        color=discord.Color.blurple()
+    )
+
+    await user.send(embed=q_embed)
 
                 msg = await bot.wait_for(
                     "message",
