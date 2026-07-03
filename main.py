@@ -1,4 +1,6 @@
 
+
+
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -132,7 +134,7 @@ async def warn(ctx, member: discord.Member, *, reason="No reason provided"):
 
 @bot.tree.command(name="warn", description="Warn a member")
 @app_commands.checks.has_permissions(manage_messages=True)
-async def slash_warn(interaction: discord.Interaction, member: discord.Member, reason: str):
+async def slash_warn(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason provided"):
     warns.setdefault(member.id, []).append(reason)
     embed = quick_embed(
         "⚠️ Member Warned",
@@ -218,7 +220,7 @@ async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
 
 @bot.tree.command(name="ban", description="Ban a member")
 @app_commands.checks.has_permissions(ban_members=True)
-async def slash_ban(interaction: discord.Interaction, member: discord.Member, reason: str):
+async def slash_ban(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason provided"):
     await member.ban(reason=reason)
     embed = quick_embed(
         "🔨 Member Banned",
@@ -270,7 +272,7 @@ async def kick(ctx, member: discord.Member, *, reason="No reason provided"):
 
 @bot.tree.command(name="kick", description="Kick a member")
 @app_commands.checks.has_permissions(kick_members=True)
-async def slash_kick(interaction: discord.Interaction, member: discord.Member, reason: str):
+async def slash_kick(interaction: discord.Interaction, member: discord.Member, reason: str = "No reason provided"):
     await member.kick(reason=reason)
     embed = quick_embed(
         "👢 Member Kicked",
@@ -348,7 +350,7 @@ async def mute(ctx, member: discord.Member, duration: str, *, reason="No reason 
 
 @bot.tree.command(name="mute", description="Mute a member")
 @app_commands.checks.has_permissions(moderate_members=True)
-async def slash_mute(interaction: discord.Interaction, member: discord.Member, duration: str, reason: str):
+async def slash_mute(interaction: discord.Interaction, member: discord.Member, duration: str, reason: str = "No reason provided"):
     td = parse_duration(duration)
     if td is None:
         return await interaction.response.send_message(
@@ -414,10 +416,10 @@ async def purge(ctx, amount: int):
 @app_commands.checks.has_permissions(manage_messages=True)
 async def slash_purge(interaction: discord.Interaction, amount: int):
     await interaction.response.defer(ephemeral=True)
-    deleted = await interaction.channel.purge(limit=amount)
+    deleted = await interaction.channel.purge(limit=amount + 1)
     embed = quick_embed(
         "🗑️ Purged Messages",
-        f"Successfully deleted **{len(deleted)}** messages.",
+        f"Successfully deleted **{len(deleted) - 1}** messages.",
         discord.Color.teal(),
     )
     await interaction.followup.send(embed=embed, ephemeral=True)
@@ -813,17 +815,12 @@ class ApplicationDecisionView(View):
             child.disabled = True
 
         embed = interaction.message.embeds[0]
-
-embed.add_field(
-    name="Decision",
-    value=f"✅ Accepted by {interaction.user.mention}",
-    inline=False
-)
-
-await interaction.message.edit(
-    embed=embed,
-    view=self
-)
+        embed.add_field(
+            name="Decision",
+            value=f"✅ Accepted by {interaction.user.mention}",
+            inline=False,
+        )
+        await interaction.message.edit(embed=embed, view=self)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, emoji="❌")
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -854,17 +851,12 @@ await interaction.message.edit(
             child.disabled = True
 
         embed = interaction.message.embeds[0]
-
-embed.add_field(
-    name="Decision",
-    value=f"❌ Denied by {interaction.user.mention}",
-    inline=False
-)
-
-await interaction.message.edit(
-    embed=embed,
-    view=self
-)  
+        embed.add_field(
+            name="Decision",
+            value=f"❌ Denied by {interaction.user.mention}",
+            inline=False,
+        )
+        await interaction.message.edit(embed=embed, view=self)
 
 
 class ApplicationDropdown(Select):
@@ -1042,6 +1034,7 @@ async def on_command_error(ctx, error):
             discord.Color.red(),
         )
         await ctx.send(embed=embed)
+        
 
 
 # ================= START BOT ================= #
@@ -1050,5 +1043,3 @@ if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN environment variable is not set.")
 
 bot.run(TOKEN)
-
-
