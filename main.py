@@ -812,7 +812,18 @@ class ApplicationDecisionView(View):
         for child in self.children:
             child.disabled = True
 
-        await interaction.message.edit(view=self)
+        embed = interaction.message.embeds[0]
+
+embed.add_field(
+    name="Decision",
+    value=f"✅ Accepted by {interaction.user.mention}",
+    inline=False
+)
+
+await interaction.message.edit(
+    embed=embed,
+    view=self
+)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.danger, emoji="❌")
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -842,7 +853,18 @@ class ApplicationDecisionView(View):
         for child in self.children:
             child.disabled = True
 
-        await interaction.message.edit(view=self)
+        embed = interaction.message.embeds[0]
+
+embed.add_field(
+    name="Decision",
+    value=f"❌ Denied by {interaction.user.mention}",
+    inline=False
+)
+
+await interaction.message.edit(
+    embed=embed,
+    view=self
+)  
 
 
 class ApplicationDropdown(Select):
